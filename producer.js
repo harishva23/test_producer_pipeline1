@@ -28,7 +28,7 @@ const run = async () => {
   await producer.connect();
 
   // Get the latest schema ID from Karapace
-  const { id: schemaId } = await registry.getLatestSchema(SUBJECT);
+  const schemaId = await registry.getLatestSchemaId(SUBJECT);
   console.log("Using schema ID:", schemaId);
 
   // Function to produce a message
