@@ -17,14 +17,17 @@ const registry = new SchemaRegistry({
 
 const producer = kafka.producer();
 
-const TOPIC = process.env.TOPIC;
-const SUBJECT = process.env.SUBJECT; // Match your Karapace subject exactly
+const TOPIC = process.env.TOPIC;      // e.g., "sample-protobuf-topic"
+const SUBJECT = process.env.SUBJECT;  // e.g., "sample-protobuf-topic-value"
 
 const run = async () => {
   await producer.connect();
 
-  // Fetch latest Protobuf schema (works reliably with Karapace)
-  const { schema, id } = await registry.getLatestSchema(SUBJECT);
+  // Fetch latest schema ID from Karapace
+  const id = await registry.getLatestSchemaId(SUBJECT);
+  if (!id) {
+    console.error(`Schema ID not found for subject ${SUBJECT}`);
+  }
   console.log("Using schema ID:", id);
 
   // Function to produce a message
