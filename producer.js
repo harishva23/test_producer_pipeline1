@@ -18,14 +18,16 @@ const registry = new SchemaRegistry({
 const producer = kafka.producer();
 
 const TOPIC = process.env.TOPIC;
-const SUBJECT = process.env.SUBJECT;
+const SUBJECT = process.env.SUBJECT; // Match your Karapace subject exactly
 
 const run = async () => {
   await producer.connect();
 
-  const { id } = await registry.getLatestSchemaId(SUBJECT);
-  console.log(`Using schema ID ${id} for subject ${SUBJECT}`);
+  // Fetch latest Protobuf schema (works reliably with Karapace)
+  const { schema, id } = await registry.getLatestSchema(SUBJECT);
+  console.log("Using schema ID:", id);
 
+  // Function to produce a message
   const sendMessage = async () => {
     const payload = {
       producerId: 1,
@@ -42,9 +44,11 @@ const run = async () => {
     console.log("Produced:", payload);
   };
 
+  // Produce every 5 seconds
   setInterval(sendMessage, 5000);
 };
 
+// Run producer
 run().catch((err) => {
   console.error("Producer error:", err);
 });
