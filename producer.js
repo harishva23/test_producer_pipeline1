@@ -1,7 +1,6 @@
-const { Kafka } = require("kafkajs");
-const { SchemaRegistry } = require("@kafkajs/confluent-schema-registry");
+import { Kafka } from "kafkajs";
+import { SchemaRegistry } from "@kafkajs/confluent-schema-registry";
 
-// Kafka client config
 const kafka = new Kafka({
   clientId: "sample-protobuf-producer",
   brokers: ["my-cluster-kafka-bootstrap.kafka.svc:9092"],
@@ -19,16 +18,14 @@ const registry = new SchemaRegistry({
 const producer = kafka.producer();
 
 const TOPIC = process.env.TOPIC;
-const SUBJECT = process.env.SUBJECT; // Match how it's stored in Karapace
+const SUBJECT = process.env.SUBJECT;
 
 const run = async () => {
   await producer.connect();
 
-  // Fetch schema ID from Karapace (do not register)
   const { id } = await registry.getLatestSchemaId(SUBJECT);
   console.log(`Using schema ID ${id} for subject ${SUBJECT}`);
 
-  // Function to send message
   const sendMessage = async () => {
     const payload = {
       producerId: 1,
@@ -45,11 +42,9 @@ const run = async () => {
     console.log("Produced:", payload);
   };
 
-  // Produce every 5 seconds
   setInterval(sendMessage, 5000);
 };
 
-// Run producer
 run().catch((err) => {
   console.error("Producer error:", err);
 });
