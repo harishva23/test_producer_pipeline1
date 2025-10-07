@@ -1,5 +1,6 @@
 import { Kafka } from "kafkajs";
 import { SchemaRegistry } from "@kafkajs/confluent-schema-registry";
+import protobuf from "protobufjs";
 
 const kafka = new Kafka({
   clientId: "sample-protobuf-producer",
@@ -16,28 +17,31 @@ const registry = new SchemaRegistry({
 });
 
 const producer = kafka.producer();
+const TOPIC = process.env.TOPIC;
+const SUBJECT = process.env.SUBJECT; // Karapace subject name
 
-const TOPIC = process.env.TOPIC;      // e.g., "sample-protobuf-topic"
-const SUBJECT = process.env.SUBJECT;  // e.g., "sample-protobuf-topic-value"
+// Load the Protobuf schema dynamically
+const root = await protobuf.load("SampleProducer.proto");
+const SampleProducer = root.lookupType("SampleProducer");
 
 const run = async () => {
   await producer.connect();
 
-  // Fetch latest schema ID from Karapace
-  const id = await registry.getLatestSchemaId(SUBJECT);
-  if (!id) {
-    console.error(`Schema ID not found for subject ${SUBJECT}`);
-  }
-  console.log("Using schema ID:", id);
+  // Get the latest schema ID from Karapace
+  const { id: schemaId } = await registry.getLatestSchema(SUBJECT);
+  console.log("Using schema ID:", schemaId);
 
   // Function to produce a message
   const sendMessage = async () => {
-    const payload = {
+    const payload = SampleProducer.create({
       producerId: 1,
       time: new Date().toISOString(),
-    };
+    });
 
-    const encodedValue = await registry.encode(id, payload);
+    const buffer = SampleProducer.encode(payload).finish();
+
+    // Encode for Karapace schema registry
+    const encodedValue = await registry.encode(schemaId, buffer);
 
     await producer.send({
       topic: TOPIC,
@@ -51,7 +55,4 @@ const run = async () => {
   setInterval(sendMessage, 5000);
 };
 
-// Run producer
-run().catch((err) => {
-  console.error("Producer error:", err);
-});
+run().catch(console.error);

@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message SampleProducer {
+  double producerId = 1;
+  string time = 2;
+}
