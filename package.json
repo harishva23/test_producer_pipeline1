@@ -1,0 +1,14 @@
+{
+  "name": "sample-protobuf-producer",
+  "version": "1.0.0",
+  "description": "KafkaJS producer for Protobuf messages with Karapace Schema Registry",
+  "main": "producer.js",
+  "type": "module",
+  "scripts": {
+    "start": "node producer.js"
+  },
+  "dependencies": {
+    "@kafkajs/confluent-schema-registry": "^3.0.1",
+    "kafkajs": "^2.2.4"
+  }
+}
